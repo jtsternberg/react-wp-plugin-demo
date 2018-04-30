@@ -22,7 +22,8 @@ function add_react_reviews_to_posts($content) {
 		$user_id = get_current_user_id();
 
 		// add our content, a div with id of root for our react script
-		$content .= "<div id='root'></div><script>var post_id = $post_id; var user_id = $user_id;</script>";
+		$content .= "<div id='root' data-id='$post_id' data-user='$user_id'></div>";
+
 		$files = array_filter( glob( __DIR__ . '/wp-plugin/build/static/js/*.js' ), function( $file ) {
 			return false !== strpos( $file, 'js/main.' );
 		} );
@@ -75,7 +76,7 @@ function get_reviews_by_post($post_id) {
 
 	$users = get_users(
 		[
-			'meta_key' => $meta_key, 
+			'meta_key' => $meta_key,
 			'fields' => ['ID', 'user_nicename']
 		]
 	);
