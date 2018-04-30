@@ -54,11 +54,12 @@ class App extends Component {
 
 		// prepare our reviews
 		const reviews = this.state.reviews;
+		const userId = this.props.user;
 		let reviewArray = [];
 		// set things up for our review average
 		let reviewTotal = 0;
 		for(const key in reviews) {
-			reviewArray.push({name: reviews[key].name, review: reviews[key].review, image: reviews[key].image});
+			reviewArray.push( reviews[key] );
 			reviewTotal += parseInt(reviews[key].review, 10);
 		}
 
@@ -67,19 +68,19 @@ class App extends Component {
 		// check if our user is logged in
 		let isLoggedIn = false;
 		// eslint-disable-next-line
-		if(this.props.user) {
+		if(userId) {
 			isLoggedIn = true;
 		}
 
 		// check if our user has a review
 		let hasReview = false;
 		// eslint-disable-next-line
-		if(this.state.reviews[this.props.user]) {
-			hasReview = true;
+		if(reviews[userId]) {
+			hasReview = reviews[userId];
 		}
 
 		return (
-			<div className="App">
+			<div className="star-rating">
 					{
 						!hasReview && isLoggedIn
 							?
@@ -116,12 +117,14 @@ class App extends Component {
 								<p>No Reviews</p>
 					}
 					{reviewArray.map((review, index) => {
+						const isMine = parseInt( review.id, 10 ) === parseInt( userId, 10 );
 						return (
-							<div className='review' key={'review_' + index}>
+							<div className={ isMine ? 'review my-review' : 'review' } key={'review_' + index}>
 								<StarRatingComponent
 										name='rating'
 										value={review.review}
-										editing={false}
+										onStarClick={value => isMine ? this.addReview(value) : null}
+										editing={isMine}
 								/>
 								<p style={{display: 'flex', alignItems: 'center'}}>
 									{review.image ? <span><img alt={"review from " + review.name} src={review.image}/>&nbsp;</span> : null}
