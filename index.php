@@ -23,10 +23,14 @@ function add_react_reviews_to_posts($content) {
 
 		// add our content, a div with id of root for our react script
 		$content .= "<div id='root'></div><script>var post_id = $post_id; var user_id = $user_id;</script>";
+		$files = array_filter( glob( __DIR__ . '/wp-plugin/build/static/js/*.js' ), function( $file ) {
+			return false !== strpos( $file, 'js/main.' );
+		} );
+		$file = end( $files );
+		$file = plugins_url( str_replace( __DIR__, '', $file ), __FILE__ );
 
 		// enqueue our build script
-		wp_enqueue_script( 'react_script', plugin_dir_url( __FILE__ ) . 'wp-plugin/build/static/js/main.9ac7c01f.js' );
-
+		wp_enqueue_script( 'react_script', $file );
 	}
 
 	return $content;
