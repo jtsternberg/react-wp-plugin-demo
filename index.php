@@ -43,65 +43,82 @@ function add_react_reviews_to_posts( $content ) {
 // add our api add review action
 add_action(
 	'rest_api_init', function () {
-		register_rest_route(
-			'reviews/v1', '/add-review', array(
-				'methods'  => 'POST',
-				'callback' => 'add_review_route',
-			)
-		);
+		register_rest_route( 'reviews/v1', '/add-review', array(
+			'methods'  => WP_REST_Server::CREATABLE,
+			'callback' => 'add_review_route',
+		) );
 	}
 );
 
-function add_review_route( $request ) {
-	if ( isset( $request['data'] ) ) {
-		$user_id = $request['data']['user_id'];
-		$post_id = $request['data']['post_id'];
-		$review  = $request['data']['review'];
-		$key     = 'review_of_post_' . $post_id;
-		update_user_meta( $user_id, $key, $review );
+function add_review( $data = array() ) {
+	$data = wp_parse_args( $data, array(
+		'user_id' => 0,
+		'post_id' => 0,
+		'review'  => 0,
+	) );
+	$data = array_map( 'absint', $data );
+	if ( empty( $data['user_id'] ) || empty( $data['post_id'] ) ) {
+		return false;
 	}
+
+	$data['result'] = update_user_meta(
+		$data['user_id'],
+		'review_of_post_' . $data['post_id'],
+		$data['review']
+	);
+
+	return $data;
+}
+
+function add_review_route( $request ) {
+	$data = add_review( $request['data'] ) ? $request['data'] : [];
+
+	$post_id = isset( $data['post_id'] )
+		? $data['post_id']
+		: 0;
+
 	return get_reviews_by_post( $post_id );
 }
 
 // add our api get reviews action
 add_action(
 	'rest_api_init', function () {
-		register_rest_route(
-			'reviews/v1', '/get-reviews/(?P<id>\d+)', array(
-				'methods'  => 'GET',
-				'callback' => 'get_reviews_by_post_route',
-			)
-		);
+		register_rest_route( 'reviews/v1', '/get-reviews/(?P<id>\d+)', array(
+			'methods'  => WP_REST_Server::READABLE,
+			'callback' => 'get_reviews_by_post_route',
+		) );
 	}
 );
 
 function get_reviews_by_post_route( $data ) {
-	return get_reviews_by_post( $data['id'] );
+	return get_reviews_by_post( ! empty( $data['id'] ) ? $data['id'] : 0 );
 }
 
 // this is our get reviews helper function
 function get_reviews_by_post( $post_id ) {
+	$post_id = absint( $post_id );
+
+	$reviews = [];
+	if ( empty( $post_id ) ) {
+		return $reviews;
+	}
 
 	$meta_key = 'review_of_post_' . $post_id;
 
-	$users = get_users(
-		[
-			'meta_key' => $meta_key,
-			'fields'   => [ 'ID', 'user_nicename' ],
-		]
-	);
+	$users = get_users( [
+		'meta_key' => $meta_key,
+		'fields'   => [ 'ID', 'user_nicename' ],
+	] );
 
-	$userArray = [];
 	// I know this isn't efficient, but for our demo it will suffice. In production, you'd want to write a join to get all the data at once.
 	foreach ( $users as $user ) {
-		$user_meta              = get_user_meta( $user->ID, $meta_key, true );
-		$image                  = get_avatar_url( $user->ID, [ 'size' => 36 ] );
-		$userArray[ $user->ID ] = [
-			'review' => $user_meta,
-			'image'  => $image,
+		$reviews[ $user->ID ] = [
+			'review' => get_user_meta( $user->ID, $meta_key, true ),
+			'image'  => get_avatar_url( $user->ID, [ 'size' => 36 ] ),
 			'name'   => $user->user_nicename,
+			'id'     => $user->ID,
 		];
 	}
 
-	return $userArray;
+	return $reviews;
 }
