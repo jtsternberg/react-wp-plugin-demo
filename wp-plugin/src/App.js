@@ -10,7 +10,7 @@ class App extends Component {
 
 		// get our starting reviews
 		// eslint-disable-next-line
-		return fetch('http://scotch.box/wp-json/reviews/v1/get-reviews/' + this.props.id,
+		return fetch( this.props.resturl + 'reviews/v1/get-reviews/' + this.props.id,
 					{
 							method: 'GET',
 					}
@@ -30,7 +30,7 @@ class App extends Component {
 		// eslint-disable-next-line
 		const data = {user_id: this.props.user, post_id: this.props.id, review: value};
 		// get our starting reviews
-		return fetch('http://scotch.box/wp-json/reviews/v1/add-review',
+		return fetch( this.props.resturl + 'reviews/v1/add-review',
 					{
 							method: 'POST',
 							headers: {

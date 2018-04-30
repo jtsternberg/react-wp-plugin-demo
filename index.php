@@ -20,9 +20,9 @@ function add_react_reviews_to_posts($content) {
 		// get our post id for the api
 		$post_id = get_the_ID();
 		$user_id = get_current_user_id();
-
+		$rest_url = get_rest_url();
 		// add our content, a div with id of root for our react script
-		$content .= "<div id='root' data-id='$post_id' data-user='$user_id'></div>";
+		$content .= "<div id='root' data-id='$post_id' data-user='$user_id' data-resturl='$rest_url'></div>";
 
 		$files = array_filter( glob( __DIR__ . '/wp-plugin/build/static/js/*.js' ), function( $file ) {
 			return false !== strpos( $file, 'js/main.' );

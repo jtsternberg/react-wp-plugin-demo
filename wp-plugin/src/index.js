@@ -4,4 +4,11 @@ import App from './App';
 const rootEl = document.getElementById('root');
 const rootArgs = rootEl.dataset;
 
-ReactDOM.render(<App id={rootArgs.id} user={rootArgs.user} />, rootEl);
+ReactDOM.render(
+	<App
+		id={rootArgs.id}
+		user={rootArgs.user}
+		resturl={rootArgs.resturl}
+	/>,
+	rootEl
+);
